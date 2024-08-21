@@ -1,0 +1,20 @@
+FROM alpine AS base
+RUN apk add --no-cache gcc musl-dev make
+
+FROM base AS dev
+WORKDIR /root
+ADD hello_world hello_world
+WORKDIR /root/hello_world/
+RUN make 
+RUN make install
+CMD hello_world
+
+FROM alpine AS final
+RUN addgroup -g 1000 -S LER
+RUN adduser -u 1000 -G LER -S LER
+WORKDIR /home/LER
+COPY --from=dev /usr/local/bin/* /usr/local/bin/
+
+FROM final AS prod
+USER LER
+CMD hello_world
